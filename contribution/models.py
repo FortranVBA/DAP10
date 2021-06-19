@@ -10,8 +10,8 @@ from projects.models import Project
 class Contributor(models.Model):
     """Contributor model."""
 
-    user = models.ForeignKey(to=Person)
-    project = models.ForeignKey(to=Project)
+    user = models.ForeignKey(to=Person, on_delete=models.CASCADE)
+    project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
     permission = [
         ("author", "Auteur"),
         ("contribor", "Contributeur"),

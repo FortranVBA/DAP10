@@ -1,2 +1,8 @@
 .venv
 .mypy_cache
+account/__pycache__
+comments/__pycache__
+contribution/__pycache__
+issues/__pycache__
+projects/__pycache__
+settings/__pycache__

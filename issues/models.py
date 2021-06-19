@@ -14,8 +14,12 @@ class Issue(models.Model):
     desc = models.TextField(max_length=2048, blank=True)
     tag = models.CharField(max_length=128)
     priority = models.CharField(max_length=128)
-    project = models.ForeignKey(to=Project)
+    project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
     status = models.CharField(max_length=128)
-    author_user = models.ForeignKey(to=Person)
-    assigned_user = models.ForeignKey(to=Person)
+    author_user = models.ForeignKey(
+        to=Person, on_delete=models.CASCADE, related_name="author"
+    )
+    assigned_user = models.ForeignKey(
+        to=Person, on_delete=models.CASCADE, related_name="assigned"
+    )
     created_time = models.DateTimeField(auto_now_add=True)
