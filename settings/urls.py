@@ -15,7 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf.urls import url
+
+from projects.views import ProjectView  # import views so we can use them in urls.
+from account.views import SignUpView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    url(r"^projects/", ProjectView.as_view()),
+    url(r"^signup/", SignUpView.as_view()),
+    path("admin/", admin.site.urls),
 ]
