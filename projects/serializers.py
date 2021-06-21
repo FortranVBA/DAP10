@@ -9,4 +9,4 @@ from rest_framework import serializers
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ["title", "description", "type", "author_user"]
+        fields = ["id", "title", "description", "type", "author_user"]
