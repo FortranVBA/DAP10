@@ -72,5 +72,9 @@ class ProjectDetails(APIView):
 
     def delete(self, request, id):
         project = self.get_project(id)
-        project.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if Contributor.objects.filter(user=request.user, project=project):
+            project.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
