@@ -10,10 +10,16 @@ from projects.models import Project
 class Contributor(models.Model):
     """Contributor model."""
 
+    PERMISSION_CHOICES = [
+        ("author", "Auteur"),
+        ("contributor", "Contributeur"),
+    ]
+
     user = models.ForeignKey(to=Person, on_delete=models.CASCADE)
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
-    permission = [
-        ("author", "Auteur"),
-        ("contribor", "Contributeur"),
-    ]
+    permission = models.CharField(
+        max_length=128,
+        choices=PERMISSION_CHOICES,
+        default="contributor",
+    )
     role = models.CharField(max_length=128)
