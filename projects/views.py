@@ -50,17 +50,25 @@ class ProjectDetails(APIView):
 
     def get(self, request, id):
         project = self.get_project(id)
-        serializer = ProjectSerializer(project)
-        return Response(serializer.data)
+
+        if Contributor.objects.filter(user=request.user, project=project):
+            serializer = ProjectSerializer(project)
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     def put(self, request, id):
         project = self.get_project(id)
-        serializer = ProjectSerializer(project, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if Contributor.objects.filter(user=request.user, project=project):
+            serializer = ProjectSerializer(project, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     def delete(self, request, id):
         project = self.get_project(id)
