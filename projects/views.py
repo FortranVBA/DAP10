@@ -16,7 +16,7 @@ class ProjectView(APIView):
     def get(self, request):
         contributors = Contributor.objects.filter(user=request.user)
         projects_contributed = Project.objects.filter(
-            author_user__in=Subquery(contributors.values("user"))
+            id=Subquery(contributors.values("project"))
         )
 
         serializer = ProjectSerializer(projects_contributed, many=True)

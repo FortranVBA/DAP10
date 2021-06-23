@@ -9,4 +9,4 @@ from rest_framework import serializers
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
-        fields = ["id", "user", "project", "permission", "role"]
+        fields = ["id", "user", "project"]

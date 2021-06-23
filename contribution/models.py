@@ -23,3 +23,11 @@ class Contributor(models.Model):
         default="contributor",
     )
     role = models.CharField(max_length=128)
+
+    class Meta:
+        """Form meta properties."""
+
+        unique_together = (
+            "user",
+            "project",
+        )

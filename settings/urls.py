@@ -18,7 +18,7 @@ from django.urls import path
 
 from projects.views import ProjectView, ProjectDetails
 from account.views import SignUpView
-from contribution.views import ProjectContributors
+from contribution.views import ProjectContributors, DeleteContributor
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -27,6 +27,7 @@ urlpatterns = [
     path("projects/", ProjectView.as_view()),
     path("projects/<int:id>/", ProjectDetails.as_view()),
     path("projects/<int:id>/users/", ProjectContributors.as_view()),
+    path("projects/<int:id>/users/<int:user_id>/", DeleteContributor.as_view()),
     path("login/", TokenObtainPairView.as_view()),
     path("signup/", SignUpView.as_view()),
     path("admin/", admin.site.urls),
