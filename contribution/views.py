@@ -7,8 +7,17 @@ from django.http import HttpResponse
 from contribution.models import Contributor
 from account.serializers import PersonSerializer
 from .serializers import ContributorSerializer
+from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
+
+
+class IsAuthor(permissions.BasePermission):
+    message = "You cannot remove the author of this project."
+
+    def has_object_permission(self, request, view, obj):
+        return not obj.permission == "author"
 
 
 class ProjectContributors(APIView):
@@ -48,6 +57,9 @@ class ProjectContributors(APIView):
 
 
 class DeleteContributor(APIView):
+
+    permission_classes = [IsAuthor]
+
     def get_project(self, id):
         try:
             return Project.objects.get(id=id)
@@ -65,10 +77,14 @@ class DeleteContributor(APIView):
     def delete(self, request, id, user_id):
         project = self.get_project(id)
 
-        if Contributor.objects.filter(user=request.user, project=project):
-            user_deleted = self.get_user(user_id)
-            if Contributor.objects.filter(user=user_deleted, project=project):
-                Contributor.objects.filter(user=user_deleted, project=project).delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        user_deleted = self.get_user(user_id)
+        if Contributor.objects.filter(user=user_deleted, project=project):
+
+            contribution_deleted = Contributor.objects.filter(
+                user=user_deleted, project=project
+            )[0]
+
+            self.check_object_permissions(self.request, contribution_deleted)
+
+            Contributor.objects.filter(user=user_deleted, project=project).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
