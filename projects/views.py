@@ -18,7 +18,7 @@ class ProjectView(APIView):
     def get(self, request):
         contributors = Contributor.objects.filter(user=request.user)
         projects_contributed = Project.objects.filter(
-            id=Subquery(contributors.values("project"))
+            id__in=Subquery(contributors.values("project"))
         )
 
         serializer = ProjectSerializer(projects_contributed, many=True)
@@ -83,24 +83,55 @@ class ProjectDetails(APIView):
 
 
 class ProjectViewSet(viewsets.ViewSet):
-    def list(self, request):
+    def get_project(self, id):
+        try:
+            return Project.objects.get(id=id)
 
+        except Project.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    def list(self, request):
         contributors = Contributor.objects.filter(user=request.user)
         projects_contributed = Project.objects.filter(
-            id=Subquery(contributors.values("project"))
+            id__in=Subquery(contributors.values("project"))
         )
 
-        queryset = projects_contributed
-        serializer = ProjectSerializer(queryset, many=True)
+        serializer = ProjectSerializer(projects_contributed, many=True)
+
         return Response(serializer.data)
+
+    def create(self, request):
+        serializer = ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            new_project = serializer.save()
+
+            contributor = Contributor.objects.create(
+                user=request.user,
+                project=new_project,
+                permission="author",
+                role="Créateur",
+            )
+            contributor.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, pk=None):
-        contributors = Contributor.objects.filter(user=request.user)
-        projects_contributed = Project.objects.filter(
-            id=Subquery(contributors.values("project"))
-        )
+        project = self.get_project(pk)
 
-        queryset = projects_contributed
-        project = get_object_or_404(queryset, pk=pk)
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        project = self.get_project(pk)
+
+        if Contributor.objects.filter(user=request.user, project=project):
+            serializer = ProjectSerializer(project, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
