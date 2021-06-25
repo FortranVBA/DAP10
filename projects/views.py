@@ -6,6 +6,8 @@ from rest_framework import status
 from django.http import HttpResponse
 from contribution.models import Contributor
 from django.db.models import Subquery
+from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 
@@ -78,3 +80,27 @@ class ProjectDetails(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+
+class ProjectViewSet(viewsets.ViewSet):
+    def list(self, request):
+
+        contributors = Contributor.objects.filter(user=request.user)
+        projects_contributed = Project.objects.filter(
+            id=Subquery(contributors.values("project"))
+        )
+
+        queryset = projects_contributed
+        serializer = ProjectSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        contributors = Contributor.objects.filter(user=request.user)
+        projects_contributed = Project.objects.filter(
+            id=Subquery(contributors.values("project"))
+        )
+
+        queryset = projects_contributed
+        project = get_object_or_404(queryset, pk=pk)
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)

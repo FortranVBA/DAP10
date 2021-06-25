@@ -16,13 +16,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from projects.views import ProjectView, ProjectDetails
+from projects.views import ProjectViewSet
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView
+from account.views import SignUpView
+
+"""
 from account.views import SignUpView
 from contribution.views import ProjectContributors, DeleteContributor
 from issues.views import IssueView, IssueEditView
-
-from rest_framework_simplejwt.views import TokenObtainPairView
-
+from comments.views import CommentsViewSet
+from rest_framework_nested import routers
 
 urlpatterns = [
     path("projects/", ProjectView.as_view()),
@@ -35,3 +39,15 @@ urlpatterns = [
     path("signup/", SignUpView.as_view()),
     path("admin/", admin.site.urls),
 ]
+"""
+
+router = DefaultRouter()
+router.register(r"projects", ProjectViewSet, basename="projects")
+
+urlpatterns = [
+    path("login/", TokenObtainPairView.as_view()),
+    path("signup/", SignUpView.as_view()),
+    path("admin/", admin.site.urls),
+]
+
+urlpatterns += router.urls
