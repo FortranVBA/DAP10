@@ -9,4 +9,5 @@ from rest_framework import serializers
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
-        fields = ["id", "user", "project"]
+        fields = ["id", "user", "project", "permission", "role"]
+        extra_kwargs = {"permission": {"required": False}, "role": {"required": False}}

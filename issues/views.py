@@ -6,6 +6,7 @@ from account.models import Person
 from projects.models import Project
 from rest_framework import status
 from django.http import HttpResponse
+from rest_framework import viewsets
 
 # Create your views here.
 
@@ -83,3 +84,63 @@ class IssueEditView(APIView):
             return Response(serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class IssueViewSet(viewsets.ViewSet):
+    def get_project(self, id):
+        try:
+            return Project.objects.get(id=id)
+
+        except Project.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    def get_issue(self, id):
+        try:
+            return Issue.objects.get(id=id)
+
+        except Issue.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    def list(self, request, projects_pk):
+        project = self.get_project(projects_pk)
+
+        issues = Issue.objects.filter(project=project)
+
+        serializer = IssueSerializer(issues, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, projects_pk):
+        project = self.get_project(projects_pk)
+
+        data = request.data.copy()
+        data["assigned_user"] = Person.objects.get(username=data["assigned_user"]).id
+        data["project"] = project.id
+        data["author_user"] = request.user.id
+        serializer = IssueSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, projects_pk, pk=None):
+        project = self.get_project(projects_pk)
+        issue = self.get_issue(pk)
+
+        data = request.data.copy()
+        data["assigned_user"] = Person.objects.get(username=data["assigned_user"]).id
+        data["project"] = project.id
+        data["author_user"] = request.user.id
+        serializer = IssueSerializer(issue, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, projects_pk, pk=None):
+        deleted_issue = Issue.objects.get(id=pk)
+        deleted_issue.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

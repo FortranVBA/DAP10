@@ -135,3 +135,9 @@ class ProjectViewSet(viewsets.ViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+    def destroy(self, request, pk=None):
+        project = self.get_project(pk)
+
+        project.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

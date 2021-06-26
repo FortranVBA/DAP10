@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from contribution.models import Contributor
 from account.serializers import PersonSerializer
 from .serializers import ContributorSerializer
+from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 
@@ -88,3 +89,37 @@ class DeleteContributor(APIView):
 
             Contributor.objects.filter(user=user_deleted, project=project).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ContributionViewSet(viewsets.ViewSet):
+    def get_project(self, id):
+        try:
+            return Project.objects.get(id=id)
+
+        except Project.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    def list(self, request, projects_pk):
+        project = self.get_project(projects_pk)
+
+        contributors = Contributor.objects.filter(project=project)
+
+        serializer = ContributorSerializer(contributors, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, projects_pk):
+
+        data = request.data.copy()
+        data["user"] = Person.objects.get(username=data["user"]).id
+        serializer = ContributorSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(permission="contributor", role="Contributor")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, projects_pk, pk=None):
+        contributor = Contributor.objects.get(id=pk)
+
+        contributor.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
