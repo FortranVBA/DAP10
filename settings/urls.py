@@ -17,7 +17,11 @@ from django.contrib import admin
 from django.urls import path
 
 from projects.views import ProjectViewSet
+from contribution.views import ContributionViewSet
+from issues.views import IssueViewSet
+from comments.views import CommentsViewSet
 from rest_framework.routers import DefaultRouter
+from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenObtainPairView
 from account.views import SignUpView
 
@@ -26,7 +30,6 @@ from account.views import SignUpView
 from contribution.views import ProjectContributors, DeleteContributor
 from issues.views import IssueView, IssueEditView
 from comments.views import CommentsViewSet
-from rest_framework_nested import routers
 
 urlpatterns = [
     path("projects/", ProjectView.as_view()),
@@ -44,6 +47,13 @@ urlpatterns = [
 router = DefaultRouter()
 router.register(r"projects", ProjectViewSet, basename="projects")
 
+project_router = routers.NestedSimpleRouter(router, r"projects", lookup="projects")
+project_router.register(r"users", ContributionViewSet, basename="users")
+project_router.register(r"issues", IssueViewSet, basename="issues")
+
+issue_router = routers.NestedSimpleRouter(project_router, r"issues", lookup="issues")
+issue_router.register(r"comments", CommentsViewSet, basename="comments")
+
 urlpatterns = [
     path("login/", TokenObtainPairView.as_view()),
     path("signup/", SignUpView.as_view()),
@@ -51,3 +61,5 @@ urlpatterns = [
 ]
 
 urlpatterns += router.urls
+urlpatterns += project_router.urls
+urlpatterns += issue_router.urls
