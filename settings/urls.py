@@ -22,7 +22,7 @@ from issues.views import IssueViewSet
 from comments.views import CommentsViewSet
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested import routers
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from account.views import SignUpView
 
 """
@@ -56,6 +56,7 @@ issue_router.register(r"comments", CommentsViewSet, basename="comments")
 
 urlpatterns = [
     path("login/", TokenObtainPairView.as_view()),
+    path("login/refresh/", TokenRefreshView.as_view()),
     path("signup/", SignUpView.as_view()),
     path("admin/", admin.site.urls),
 ]

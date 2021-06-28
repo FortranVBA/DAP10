@@ -8,87 +8,53 @@ from contribution.models import Contributor
 from django.db.models import Subquery
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
+from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
 
-class ProjectView(APIView):
-    """Project class based API view."""
+class IsContributorOrAuthor(permissions.BasePermission):
+    message = "You must be the project author or contributor."
 
-    def get(self, request):
-        contributors = Contributor.objects.filter(user=request.user)
-        projects_contributed = Project.objects.filter(
-            id__in=Subquery(contributors.values("project"))
-        )
-
-        serializer = ProjectSerializer(projects_contributed, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = ProjectSerializer(data=request.data)
-        if serializer.is_valid():
-            new_project = serializer.save(author_user=request.user)
-
-            contributor = Contributor.objects.create(
-                user=request.user,
-                project=new_project,
-                permission="author",
-                role="Créateur",
-            )
-            contributor.save()
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ProjectDetails(APIView):
-    def get_project(self, id):
-        try:
-            return Project.objects.get(id=id)
-
-        except Project.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-    def get(self, request, id):
-        project = self.get_project(id)
-
-        if Contributor.objects.filter(user=request.user, project=project):
-            serializer = ProjectSerializer(project)
-            return Response(serializer.data)
+    def has_object_permission(self, request, view, obj):
+        if Contributor.objects.filter(project=obj, user=request.user):
+            return True
         else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            return False
 
-    def put(self, request, id):
-        project = self.get_project(id)
 
-        if Contributor.objects.filter(user=request.user, project=project):
-            serializer = ProjectSerializer(project, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
+class IsAuthor(permissions.BasePermission):
+    message = "You must be the project author."
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def has_object_permission(self, request, view, obj):
+        if Contributor.objects.filter(project=obj, user=request.user):
+            permission = Contributor.objects.filter(project=obj, user=request.user)
+            return not permission.permission == "author"
         else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-    def delete(self, request, id):
-        project = self.get_project(id)
-
-        if Contributor.objects.filter(user=request.user, project=project):
-            project.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            return False
 
 
 class ProjectViewSet(viewsets.ViewSet):
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action == "retrieve":
+            permission_classes = [IsAuthenticated, IsContributorOrAuthor]
+        elif self.action in ["update", "destroy"]:
+            permission_classes = [IsAuthenticated, IsAuthor]
+        else:
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
+
     def get_project(self, id):
         try:
             return Project.objects.get(id=id)
 
         except Project.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+            return None
 
     def list(self, request):
         contributors = Contributor.objects.filter(user=request.user)
@@ -119,25 +85,34 @@ class ProjectViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         project = self.get_project(pk)
+        if not project:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+        self.check_object_permissions(request, project)
 
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
 
     def update(self, request, pk=None):
         project = self.get_project(pk)
+        if not project:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
-        if Contributor.objects.filter(user=request.user, project=project):
-            serializer = ProjectSerializer(project, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
+        self.check_object_permissions(request, project)
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        serializer = ProjectSerializer(project, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk=None):
         project = self.get_project(pk)
+        if not project:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+        self.check_object_permissions(request, project)
 
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

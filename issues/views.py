@@ -4,105 +4,64 @@ from .models import Issue
 from .serializers import IssueSerializer
 from account.models import Person
 from projects.models import Project
+from contribution.models import Contributor
 from rest_framework import status
 from django.http import HttpResponse
 from rest_framework import viewsets
+from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
 
-class IssueView(APIView):
-    """Project class based API view."""
+class IsProjectContributorOrAuthor(permissions.BasePermission):
+    message = "You must be the project author or contributor."
 
-    def get_project(self, id):
-        try:
-            return Project.objects.get(id=id)
-
-        except Project.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-    def get(self, request, id):
-        project = self.get_project(id)
-
-        issues = Issue.objects.filter(project=project)
-
-        serializer = IssueSerializer(issues, many=True)
-        return Response(serializer.data)
-
-    def post(self, request, id):
-        project = self.get_project(id)
-
-        data = request.data.copy()
-        data["assigned_user"] = Person.objects.get(username=data["assigned_user"]).id
-        data["project"] = project.id
-        data["author_user"] = request.user.id
-        serializer = IssueSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def has_object_permission(self, request, view, obj):
+        if Contributor.objects.filter(project=obj, user=request.user):
+            return True
+        else:
+            return False
 
 
-class IssueEditView(APIView):
-    """Project class based API view."""
+class IsAuthor(permissions.BasePermission):
+    message = "You must be the issue author."
 
-    def get_project(self, id):
-        try:
-            return Project.objects.get(id=id)
-
-        except Project.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-    def get_issue(self, id):
-        try:
-            return Issue.objects.get(id=id)
-
-        except Issue.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-    def delete(self, request, id, issue_id):
-        project = self.get_project(id)
-
-        deleted_issue = Issue.objects.get(id=issue_id)
-        deleted_issue.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def put(self, request, id, issue_id):
-        project = self.get_project(id)
-        issue = self.get_issue(id)
-
-        data = request.data.copy()
-        data["assigned_user"] = Person.objects.get(username=data["assigned_user"]).id
-        data["project"] = project.id
-        data["author_user"] = request.user.id
-        serializer = IssueSerializer(issue, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def has_object_permission(self, request, view, obj):
+        return obj.author_user == request.user
 
 
 class IssueViewSet(viewsets.ViewSet):
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ["update", "destroy"]:
+            permission_classes = [IsAuthenticated, IsAuthor]
+        else:
+            permission_classes = [IsAuthenticated, IsProjectContributorOrAuthor]
+
+        return [permission() for permission in permission_classes]
+
     def get_project(self, id):
         try:
             return Project.objects.get(id=id)
 
         except Project.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+            return None
 
     def get_issue(self, id):
         try:
             return Issue.objects.get(id=id)
 
         except Issue.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+            return None
 
     def list(self, request, projects_pk):
         project = self.get_project(projects_pk)
+        if not project:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(request, project)
 
         issues = Issue.objects.filter(project=project)
 
@@ -111,6 +70,9 @@ class IssueViewSet(viewsets.ViewSet):
 
     def create(self, request, projects_pk):
         project = self.get_project(projects_pk)
+        if not project:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(request, project)
 
         data = request.data.copy()
         data["assigned_user"] = Person.objects.get(username=data["assigned_user"]).id
@@ -127,7 +89,13 @@ class IssueViewSet(viewsets.ViewSet):
 
     def update(self, request, projects_pk, pk=None):
         project = self.get_project(projects_pk)
+        if not project:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
         issue = self.get_issue(pk)
+        if not issue:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(request, issue)
 
         data = request.data.copy()
         data["assigned_user"] = Person.objects.get(username=data["assigned_user"]).id
@@ -141,6 +109,10 @@ class IssueViewSet(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, projects_pk, pk=None):
-        deleted_issue = Issue.objects.get(id=pk)
+        deleted_issue = self.get_issue(pk)
+        if not deleted_issue:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(request, deleted_issue)
+
         deleted_issue.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
