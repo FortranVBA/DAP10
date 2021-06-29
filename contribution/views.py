@@ -29,8 +29,8 @@ class IsAuthor(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if Contributor.objects.filter(project=obj, user=request.user):
-            permission = Contributor.objects.filter(project=obj, user=request.user)
-            return not permission.permission == "author"
+            permission = Contributor.objects.filter(project=obj, user=request.user)[0]
+            return permission.permission == "author"
         else:
             return False
 
@@ -56,9 +56,9 @@ class ContributionViewSet(viewsets.ViewSet):
 
     def get_contributor(self, id):
         try:
-            return Project.objects.get(id=id)
+            return Contributor.objects.get(id=id)
 
-        except Project.DoesNotExist:
+        except Contributor.DoesNotExist:
             return None
 
     def list(self, request, projects_pk):
@@ -80,6 +80,7 @@ class ContributionViewSet(viewsets.ViewSet):
 
         data = request.data.copy()
         data["user"] = Person.objects.get(username=data["user"]).id
+        data["project"] = projects_pk
         serializer = ContributorSerializer(data=data)
         if serializer.is_valid():
             serializer.save(permission="contributor", role="Contributor")
