@@ -19,4 +19,5 @@ class IssueSerializer(serializers.ModelSerializer):
             "status",
             "author_user",
             "assigned_user",
+            "created_time",
         ]
