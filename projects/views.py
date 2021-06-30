@@ -27,8 +27,8 @@ class IsAuthor(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if Contributor.objects.filter(project=obj, user=request.user):
-            permission = Contributor.objects.filter(project=obj, user=request.user)
-            return not permission.permission == "author"
+            permission = Contributor.objects.filter(project=obj, user=request.user)[0]
+            return permission.permission == "author"
         else:
             return False
 
