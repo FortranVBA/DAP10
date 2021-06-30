@@ -19,30 +19,11 @@ from django.urls import path
 from projects.views import ProjectViewSet
 from contribution.views import ContributionViewSet
 from issues.views import IssueViewSet
-from comments.views import CommentsViewSet
+from comments.views import CommentsModelsViewSet
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from account.views import SignUpView
-
-"""
-from account.views import SignUpView
-from contribution.views import ProjectContributors, DeleteContributor
-from issues.views import IssueView, IssueEditView
-from comments.views import CommentsViewSet
-
-urlpatterns = [
-    path("projects/", ProjectView.as_view()),
-    path("projects/<int:id>/", ProjectDetails.as_view()),
-    path("projects/<int:id>/issues/", IssueView.as_view()),
-    path("projects/<int:id>/issues/<int:issue_id>/", IssueEditView.as_view()),
-    path("projects/<int:id>/users/", ProjectContributors.as_view()),
-    path("projects/<int:id>/users/<int:user_id>/", DeleteContributor.as_view()),
-    path("login/", TokenObtainPairView.as_view()),
-    path("signup/", SignUpView.as_view()),
-    path("admin/", admin.site.urls),
-]
-"""
 
 router = DefaultRouter()
 router.register(r"projects", ProjectViewSet, basename="projects")
@@ -52,7 +33,7 @@ project_router.register(r"users", ContributionViewSet, basename="users")
 project_router.register(r"issues", IssueViewSet, basename="issues")
 
 issue_router = routers.NestedSimpleRouter(project_router, r"issues", lookup="issues")
-issue_router.register(r"comments", CommentsViewSet, basename="comments")
+issue_router.register(r"comments", CommentsModelsViewSet, basename="comments")
 
 urlpatterns = [
     path("login/", TokenObtainPairView.as_view()),

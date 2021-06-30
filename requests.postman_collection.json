@@ -1,0 +1,873 @@
+{
+	"info": {
+		"_postman_id": "38f41a9e-5444-4f5f-8f76-2ef436eb81fb",
+		"name": "New Collection",
+		"description": "# Soft Desk API\n\n## Overview\n\nSoft Desk API is a back-end application to be executed locally in the context of OpenClassroom educational project. \nIt allow registered users to report and follow project related issues.\nRegistered users can create projects, add project contributors, create project issues and create issue comments.\nThis application has been developed with the Django rest framework, using SQlite database.\n\n## Local server installation and usage\n\nPlease refer to the application README.md for application installation and usage.\n\n## Error codes\n\n**404**: One of the id request (stored in variables `project_id`, `user_id`, `issue_id` or `comment_id`) refer to a non existant object.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "signup",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "azerty",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "a1z2e3r4",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/signup/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"signup",
+						""
+					]
+				},
+				"description": "Signup as a new user.\n\n### Expected fields in request body\n\n- **username** : Username of the new user.\n- **password** : Password of the new user."
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.collectionVariables.set(\"token\", jsonData.access);\r",
+							"pm.collectionVariables.set(\"token_refresh\", jsonData.refresh);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "aze",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "a1z2e3r4",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/login/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"login",
+						""
+					]
+				},
+				"description": "Login as a previously registered user.\n\n### Expected fields in request body\n\n- **username** : Username of the previously registered user.\n- **password** : Password of the previously registered user.\n\n### Keys returned in response body\n\n- **refresh** : Refresh token to be used for refreshing login end point. The value is automatically assigned to the collection variable `token_refresh`.\n- **access** : Access token to be used for authentification. The value is automatically assigned to the collection variable `token`."
+			},
+			"response": []
+		},
+		{
+			"name": "refresh login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.collectionVariables.set(\"token\", jsonData.access);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "refresh",
+							"value": "{{token_refresh}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/login/refresh/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"login",
+						"refresh",
+						""
+					]
+				},
+				"description": "Refresh access for previously logged user.\n\n### Expected fields in request body\n\n- **refresh** : Refresh token value of the previously logged user.\n\n### Keys returned in response body\n\n- **access** : Access token to be used for authentification. The value is automatically assigned to the collection variable `token`."
+			},
+			"response": []
+		},
+		{
+			"name": "list projects",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.collectionVariables.set(\"project_id\", jsonData[0].id);\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						""
+					]
+				},
+				"description": "List all projects from wich current user is an assigned contributor or author.\nThe collection variable `project_id` is automatically set as the 1st project id in the list (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated.\n\n### Keys returned in response body\n\nList of project with following data :\n- **id** : Id number of project.\n- **title** : Title of the new project.\n- **description** : Description of the new project.\n- **type** : Type of the new project: accepted values are `back-end`, `front-end`, `iOS` or `Android`."
+			},
+			"response": []
+		},
+		{
+			"name": "create project",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "title",
+							"value": "Title1",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "type",
+							"value": "front-end",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						""
+					]
+				},
+				"description": "Create a new project.\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated.\n\n### Expected fields in request body\n\n- **title** : Title of the new project.\n- **description** : Description of the new project.\n- **type** : Type of the new project: accepted values are `back-end`, `front-end`, `iOS` or `Android`."
+			},
+			"response": []
+		},
+		{
+			"name": "project details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						""
+					]
+				},
+				"description": "Retrive data from project with id `project_id`. The collection variable `project_id` is automatically set as the 1st project id in the list when the request list projects is called (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be a contributor or the author of the project.\n\n### Keys returned in response body\n\n- **id** : Id number of project.\n- **title** : Title of the project.\n- **description** : Description of the project.\n- **type** : Type of the project: accepted values are `back-end`, `front-end`, `iOS` or `Android`."
+			},
+			"response": []
+		},
+		{
+			"name": "update project",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "title",
+							"value": "Title modif",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "type",
+							"value": "front-end",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						""
+					]
+				},
+				"description": "Update project data for project with id `project_id`. The collection variable `project_id` is automatically set as the 1st project id in the list when the request list projects is called (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be  the author of the project.\n\n### Expected fields in request body\n\n- **title** : Title of the new project.\n- **description** : Description of the new project.\n- **type** : Type of the new project: accepted values are `back-end`, `front-end`, `iOS` or `Android`."
+			},
+			"response": []
+		},
+		{
+			"name": "delete project",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						""
+					]
+				},
+				"description": "Delete project with id `project_id`. The collection variable `project_id` is automatically set as the 1st project id in the list when the request list projects is called (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be  the author of the project.\n\n### Response\n\nIf delete operation is successful, the code 201 is returned."
+			},
+			"response": []
+		},
+		{
+			"name": "add contributor",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "user",
+							"value": "azerty",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/users/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"users",
+						""
+					]
+				},
+				"description": "Add a new contributor to the project with id `project_id`.\nThe collection variable `project_id` is automatically set as the 1st project id in the list when the request list projects is called (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be a contributor or the author of the project.\n\n### Expected fields in request body\n\n- **user** : Username of the contributor to be added."
+			},
+			"response": []
+		},
+		{
+			"name": "list contributors",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.collectionVariables.set(\"user_id\", jsonData[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/users/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"users",
+						""
+					]
+				},
+				"description": "List all contributors of the project with id `project_id`.\nThe collection variable `project_id` is automatically set as the 1st project id in the list when the request list projects is called (this value can be override in the collection tab if needed).\nThe collection variable `user_id` is automatically set as the 1st contributor id in the list (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be a contributor or the author of the project.\n\n### Keys returned in response body\n\nList of contributors with following data :\n- **id** : Id number of the contribution.\n- **user** : Id number of user contributor.\n- **project** : Id number of the related project.\n- **permission** : Permission of the contributor: values are `author` or `contributor`.\n- **role** : Role of the contributor: values are `Creator` or `Contributor`."
+			},
+			"response": []
+		},
+		{
+			"name": "delete contributor",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/users/{{user_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"users",
+						"{{user_id}}",
+						""
+					]
+				},
+				"description": "Delete contributor with id `user_id`. The collection variables `project_id`/`user_id` are automatically set as the 1st item id in the list when the request list projects/contributors is called (the values can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be the author of the project.\n\n### Response\n\nIf delete operation is successful, the code 201 is returned."
+			},
+			"response": []
+		},
+		{
+			"name": "list issues",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.collectionVariables.set(\"issue_id\", jsonData[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						""
+					]
+				},
+				"description": "List all issues of the project with id `project_id`.\nThe collection variable `project_id` is automatically set as the 1st project id in the list when the request list projects is called (this value can be override in the collection tab if needed).\nThe collection variable `issue_id` is automatically set as the 1st issue id in the list (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be a contributor or the author of the project.\n\n### Keys returned in response body\n\nList of issues with following data :\n- **id** : Id number of the issue.\n- **title** : Title of the issue.\n- **desc** : Description of the issue.\n- **tag** : Tag of the issues: values are `bug`, `improvement` or `task`.\n- **priority** : Issue priority: values are `low`, `medium` or `high`.\n- **status** : Issue status: values are `to_do`, `on_going` or `done`.\n- **author_user** : Id number of the author user.\n- **assigned_user** : Id number of the assigned user.\n- **created_time** : Date and hour of the issue creation or last update."
+			},
+			"response": []
+		},
+		{
+			"name": "create issue",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "title",
+							"value": "problem1",
+							"type": "text"
+						},
+						{
+							"key": "desc",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "tag",
+							"value": "task",
+							"type": "text"
+						},
+						{
+							"key": "priority",
+							"value": "low",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "to_do",
+							"type": "text"
+						},
+						{
+							"key": "assigned_user",
+							"value": "aze",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						""
+					]
+				},
+				"description": "Create a new issue to the project with id `project_id`.\nThe collection variable `project_id` is automatically set as the 1st project id in the list when the request list issues is called (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be a contributor or the author of the project.\n\n### Expected fields in request body\n\n- **title** : Title of the issue.\n- **desc** : Description of the issue.\n- **tag** : Tag of the issues: values are `bug`, `improvement` or `task`.\n- **priority** : Issue priority: values are `low`, `medium` or `high`.\n- **status** : Issue status: values are `to_do`, `on_going` or `done`.\n- **assigned_user** : Assigned username."
+			},
+			"response": []
+		},
+		{
+			"name": "update issue",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "title",
+							"value": "problem2",
+							"type": "text"
+						},
+						{
+							"key": "desc",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "tag",
+							"value": "task",
+							"type": "text"
+						},
+						{
+							"key": "priority",
+							"value": "low",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "to_do",
+							"type": "text"
+						},
+						{
+							"key": "assigned_user",
+							"value": "aze",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/{{issue_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						"{{issue_id}}",
+						""
+					]
+				},
+				"description": "Update issue with id `issue_id`, related to the project with id `project_id`.\nThe collection variables `project_id`/`issue_id` are automatically set as the 1st item id in the list when the request list projects/issues is called (the values can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be the author of the issue.\n\n### Expected fields in request body\n\n- **title** : Title of the issue.\n- **desc** : Description of the issue.\n- **tag** : Tag of the issues: values are `bug`, `improvement` or `task`.\n- **priority** : Issue priority: values are `low`, `medium` or `high`.\n- **status** : Issue status: values are `to_do`, `on_going` or `done`.\n- **assigned_user** : Assigned username."
+			},
+			"response": []
+		},
+		{
+			"name": "delete issue",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/{{issue_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						"{{issue_id}}",
+						""
+					]
+				},
+				"description": "Delete issue with id `issue_id`. The collection variables `project_id`/`issue_id` are automatically set as the 1st item id in the list when the request list projects/issues is called (the values can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be the author of the issue.\n\n### Response\n\nIf delete operation is successful, the code 201 is returned."
+			},
+			"response": []
+		},
+		{
+			"name": "create comment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "description",
+							"value": "1st comment",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/{{issue_id}}/comments/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						"{{issue_id}}",
+						"comments",
+						""
+					]
+				},
+				"description": "Create a new comment to the issue with id `issue_id`, related to project with id `issue_id`.\nThe collection variables `project_id`/`issue_id` are automatically set as the 1st item id in the list when the request list projects/issues is called (the values can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be a contributor or the author of the project.\n\n### Expected fields in request body\n\n- **description** : Comment description."
+			},
+			"response": []
+		},
+		{
+			"name": "list comments",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.collectionVariables.set(\"comment_id\", jsonData[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/{{issue_id}}/comments/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						"{{issue_id}}",
+						"comments",
+						""
+					]
+				},
+				"description": "List all comments related to the issue with id `issue_id`.\nThe collection variables `project_id`/`issue_id` are automatically set as the 1st item id in the list when the request list projects/issues is called (the values can be override in the collection tab if needed).\nThe collection variable `comment_id` is automatically set as the 1st comment id in the list (this value can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be a contributor or the author of the project.\n\n### Keys returned in response body\n\nList of comments with following data :\n- **id** : Id number of the comment.\n- **description** : Description of the comment.\n- **author_user** : Id number of the author user.\n- **issue** : Id number of the related issue.\n- **created_time** : Date and hour of the comment creation or last update."
+			},
+			"response": []
+		},
+		{
+			"name": "update comment",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "description",
+							"value": "Modif comment",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/{{issue_id}}/comments/{{comment_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						"{{issue_id}}",
+						"comments",
+						"{{comment_id}}",
+						""
+					]
+				},
+				"description": "Update the comment with id `comment_id`.\nThe collection variables `project_id`/`issue_id` are automatically set as the 1st item id in the list when the request list projects/issues is called (the values can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be  the author of the comment.\n\n### Expected fields in request body\n\n- **description** : Comment description."
+			},
+			"response": []
+		},
+		{
+			"name": "delete comment",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/{{issue_id}}/comments/{{comment_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						"{{issue_id}}",
+						"comments",
+						"{{comment_id}}",
+						""
+					]
+				},
+				"description": "Delete comment with id `comment_id`. The collection variables `project_id`/`issue_id` are automatically set as the 1st item id in the list when the request list projects/issues is called (the values can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be  the author of the comment.\n\n### Response\n\nIf delete operation is successful, the code 201 is returned."
+			},
+			"response": []
+		},
+		{
+			"name": "comment details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/projects/{{project_id}}/issues/{{issue_id}}/comments/{{comment_id}}/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"issues",
+						"{{issue_id}}",
+						"comments",
+						"{{comment_id}}",
+						""
+					]
+				},
+				"description": "Retrive data from comment with id `comment_id`. The collection variables `project_id`/`issue_id` are automatically set as the 1st item id in the list when the request list projects/issues is called (the values can be override in the collection tab if needed).\n\n### Authentification\n\nRequires bearer token authentification (value is stored in collection variable `token` during login.\n\n### Permission\nThe user must be authenticated and must be a contributor or the author of the project.\n\n### Keys returned in response body\n\n- **id** : Id number of the comment.\n- **description** : Description of the comment.\n- **author_user** : Id number of the author user.\n- **issue** : Id number of the related issue.\n- **created_time** : Date and hour of the comment creation or last update."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "token_refresh",
+			"value": ""
+		},
+		{
+			"key": "project_id",
+			"value": ""
+		},
+		{
+			"key": "user_id",
+			"value": ""
+		},
+		{
+			"key": "issue_id",
+			"value": ""
+		},
+		{
+			"key": "comment_id",
+			"value": ""
+		}
+	]
+}

@@ -158,10 +158,3 @@ class CommentsViewSet(viewsets.ViewSet):
 
         serializer = CommentSerializer(comment)
         return Response(serializer.data)
-
-
-class CommentsModelsViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-
-    def get_queryset(self):
-        return Comment.objects.filter(issue=self.kwargs["issues_pk"])
