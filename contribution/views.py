@@ -101,3 +101,13 @@ class ContributionViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ContributionModelsViewSet(viewsets.ModelViewSet):
+    serializer_class = ContributorSerializer
+
+    def get_queryset(self):
+        path_issue = str(self.request.path).split("/projects/")[1]
+        projects_pk = int(path_issue.split("/")[0])
+
+        return Contributor.objects.filter(project=projects_pk)

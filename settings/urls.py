@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 
 from projects.views import ProjectViewSet
-from contribution.views import ContributionViewSet
+from contribution.views import ContributionModelsViewSet
 from issues.views import IssueViewSet
 from comments.views import CommentsModelsViewSet
 from rest_framework.routers import DefaultRouter
@@ -29,7 +29,7 @@ router = DefaultRouter()
 router.register(r"projects", ProjectViewSet, basename="projects")
 
 project_router = routers.NestedSimpleRouter(router, r"projects", lookup="projects")
-project_router.register(r"users", ContributionViewSet, basename="users")
+project_router.register(r"users", ContributionModelsViewSet, basename="users")
 project_router.register(r"issues", IssueViewSet, basename="issues")
 
 issue_router = routers.NestedSimpleRouter(project_router, r"issues", lookup="issues")
