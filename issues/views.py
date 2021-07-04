@@ -18,10 +18,7 @@ class IsProjectContributorOrAuthor(permissions.BasePermission):
     message = "You must be the project author or contributor."
 
     def has_object_permission(self, request, view, obj):
-        if Contributor.objects.filter(project=obj, user=request.user):
-            return True
-        else:
-            return False
+        return bool(Contributor.objects.filter(project=obj, user=request.user))
 
 
 class IsAuthor(permissions.BasePermission):
