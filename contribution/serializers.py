@@ -9,7 +9,11 @@ from rest_framework import serializers
 
 
 class ContributorSerializer(serializers.ModelSerializer):
+    """Contributor serializer."""
+
     class Meta:
+        """Serializer meta properties."""
+
         model = Contributor
         fields = ["id", "user", "project", "permission", "role"]
         extra_kwargs = {
@@ -20,6 +24,7 @@ class ContributorSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        """Add contributor."""
         path_issue = str(self.context["request"].path).split("/projects/")[1]
         projects_pk = int(path_issue.split("/")[0])
 

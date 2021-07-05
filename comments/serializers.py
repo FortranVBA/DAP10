@@ -9,7 +9,11 @@ from issues.models import Issue
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Comment serializer."""
+
     class Meta:
+        """Serializer meta properties."""
+
         model = Comment
         fields = ["id", "description", "author_user", "issue", "created_time"]
         extra_kwargs = {
@@ -18,6 +22,7 @@ class CommentSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        """Create comment."""
         path_issue = str(self.context["request"].path).split("/issues/")[1]
         issue_pk = int(path_issue.split("/")[0])
 

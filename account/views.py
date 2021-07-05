@@ -1,3 +1,5 @@
+"""Project OC DAP 10 - Account views file."""
+
 from .serializers import RegisterSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,11 +10,12 @@ from rest_framework.permissions import AllowAny
 
 
 class SignUpView(APIView):
-    """Project class based API view."""
+    """Sign up view."""
 
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Registration with post request."""
         serializer = RegisterSerializer(data=request.data)
 
         if serializer.is_valid():

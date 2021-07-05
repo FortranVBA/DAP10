@@ -126,16 +126,17 @@ class ProjectViewSet(viewsets.ViewSet):
 
 
 class ProjectModelsViewSet(viewsets.ModelViewSet):
+    """Projects viewset."""
+
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
+        """Get the projects to be listed."""
         contributors = Contributor.objects.filter(user=self.request.user)
         return Project.objects.filter(id__in=Subquery(contributors.values("project")))
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
+        """Instantiates and returns the list of permissions that this view requires."""
         if self.action == "retrieve":
             permission_classes = [IsAuthenticated, IsContributorOrAuthor]
         elif self.action in ["update", "destroy"]:
@@ -148,6 +149,7 @@ class ProjectModelsViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request):
+        """Create a project."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         new_project = serializer.save()

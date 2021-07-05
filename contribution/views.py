@@ -120,18 +120,19 @@ class ContributionViewSet(viewsets.ViewSet):
 
 
 class ContributionModelsViewSet(viewsets.ModelViewSet):
+    """Contribution viewset."""
+
     serializer_class = ContributorSerializer
 
     def get_queryset(self):
+        """Get the contributor to be listed."""
         path_issue = str(self.request.path).split("/projects/")[1]
         projects_pk = int(path_issue.split("/")[0])
 
         return Contributor.objects.filter(project=projects_pk)
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
+        """Instantiates and returns the list of permissions that this view requires."""
         if self.action == "destroy":
             permission_classes = [IsAuthenticated, IsAuthor]
         elif self.action in ["list", "create"]:
@@ -142,6 +143,7 @@ class ContributionModelsViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
+        """Add a new contributor."""
         project = Project.objects.get(id=kwargs["projects_pk"])
         self.check_object_permissions(request, project)
 
@@ -153,11 +155,13 @@ class ContributionModelsViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
+        """List all project contributors."""
         project = Project.objects.get(id=kwargs["projects_pk"])
         self.check_object_permissions(request, project)
         return super().list(request, args, kwargs)
 
     def destroy(self, request, *args, **kwargs):
+        """Remove a contributor."""
         project = Project.objects.get(id=kwargs["projects_pk"])
 
         permission_project = IsProjectAuthor()

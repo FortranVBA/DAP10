@@ -9,7 +9,11 @@ from rest_framework import serializers
 
 
 class IssueSerializer(serializers.ModelSerializer):
+    """Issue serializer."""
+
     class Meta:
+        """Serializer meta properties."""
+
         model = Issue
         fields = [
             "id",
@@ -30,6 +34,7 @@ class IssueSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        """Create issue."""
         path_issue = str(self.context["request"].path).split("/projects/")[1]
         project_pk = int(path_issue.split("/")[0])
 
@@ -45,6 +50,7 @@ class IssueSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
+        """Update issue."""
         path_issue = str(self.context["request"].path).split("/projects/")[1]
         project_pk = int(path_issue.split("/")[0])
 

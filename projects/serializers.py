@@ -8,6 +8,10 @@ from contribution.models import Contributor
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    """Project serializer."""
+
     class Meta:
+        """Serializer meta properties."""
+
         model = Project
         fields = ["id", "title", "description", "type"]

@@ -125,15 +125,16 @@ class IssueViewSet(viewsets.ViewSet):
 
 
 class IssuesModelsViewSet(viewsets.ModelViewSet):
+    """Issue viewset."""
+
     serializer_class = IssueSerializer
 
     def get_queryset(self):
+        """Get the issues to be listed."""
         return Issue.objects.filter(project=self.kwargs["projects_pk"])
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
+        """Instantiates and returns the list of permissions that this view requires."""
         if self.action in ["update", "destroy"]:
             permission_classes = [IsAuthenticated, IsAuthor]
         elif self.action in ["list", "create"]:
@@ -144,11 +145,13 @@ class IssuesModelsViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def list(self, request, *args, **kwargs):
+        """List all project issues."""
         project = Project.objects.get(id=kwargs["projects_pk"])
         self.check_object_permissions(request, project)
         return super().list(request, args, kwargs)
 
     def create(self, request, *args, **kwargs):
+        """Create a project issue."""
         project = Project.objects.get(id=kwargs["projects_pk"])
         self.check_object_permissions(request, project)
 

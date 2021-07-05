@@ -171,15 +171,16 @@ class CommentsViewSet(viewsets.ViewSet):
 
 
 class CommentsModelsViewSet(viewsets.ModelViewSet):
+    """Comment viewset."""
+
     serializer_class = CommentSerializer
 
     def get_queryset(self):
+        """Get the comments to be listed."""
         return Comment.objects.filter(issue=self.kwargs["issues_pk"])
 
     def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
+        """Instantiates and returns the list of permissions that this view requires."""
         if self.action in ["update", "destroy"]:
             permission_classes = [IsAuthenticated, IsAuthor]
         elif self.action in ["create", "list"]:
@@ -192,16 +193,19 @@ class CommentsModelsViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def list(self, request, *args, **kwargs):
+        """List the comments."""
         project = Project.objects.get(id=kwargs["projects_pk"])
         self.check_object_permissions(request, project)
         return super().list(request, args, kwargs)
 
     def create(self, request, *args, **kwargs):
+        """Create a new comment."""
         project = Project.objects.get(id=kwargs["projects_pk"])
         self.check_object_permissions(request, project)
         return super().create(request, args, kwargs)
 
     def retrieve(self, request, *args, **kwargs):
+        """Retrieve a specific comment."""
         project = Project.objects.get(id=kwargs["projects_pk"])
 
         permission_project = IsProjectContributorOrAuthor()
