@@ -114,3 +114,42 @@ class ProjectViewSet(viewsets.ViewSet):
 
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProjectModelsViewSet(viewsets.ModelViewSet):
+    serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        contributors = Contributor.objects.filter(user=self.request.user)
+        return Project.objects.filter(id__in=Subquery(contributors.values("project")))
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action == "retrieve":
+            permission_classes = [IsAuthenticated, IsContributorOrAuthor]
+        elif self.action in ["update", "destroy"]:
+            permission_classes = [IsAuthenticated, IsAuthor]
+        else:
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_project = serializer.save()
+
+        contributor = Contributor.objects.create(
+            user=request.user,
+            project=new_project,
+            permission="author",
+            role="Creator",
+        )
+        contributor.save()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )

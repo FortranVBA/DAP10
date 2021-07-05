@@ -22,7 +22,7 @@ class IsContributorOrAuthor(permissions.BasePermission):
             return False
 
 
-class IsAuthor(permissions.BasePermission):
+class IsProjectAuthor(permissions.BasePermission):
     message = "You must be the project author."
 
     def has_object_permission(self, request, view, obj):
@@ -31,6 +31,13 @@ class IsAuthor(permissions.BasePermission):
             return permission.permission == "author"
         else:
             return False
+
+
+class IsAuthor(permissions.BasePermission):
+    message = "You cannot delete the project author."
+
+    def has_object_permission(self, request, view, obj):
+        return not obj.permission == "author"
 
 
 class ContributionViewSet(viewsets.ViewSet):
@@ -111,3 +118,42 @@ class ContributionModelsViewSet(viewsets.ModelViewSet):
         projects_pk = int(path_issue.split("/")[0])
 
         return Contributor.objects.filter(project=projects_pk)
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action == "destroy":
+            permission_classes = [IsAuthenticated, IsAuthor]
+        else:
+            permission_classes = [IsAuthenticated, IsContributorOrAuthor]
+
+        return [permission() for permission in permission_classes]
+
+    def create(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs["projects_pk"])
+        self.check_object_permissions(request, project)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(permission="contributor", role="Contributor")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs["projects_pk"])
+        self.check_object_permissions(request, project)
+        return super().list(request, args, kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs["projects_pk"])
+
+        permission_project = IsProjectAuthor()
+
+        if permission_project.has_object_permission(request, self, project):
+            return super().destroy(request, args, kwargs)
+
+        return Response(
+            {"Detail": permission_project.message}, status=status.HTTP_400_BAD_REQUEST
+        )

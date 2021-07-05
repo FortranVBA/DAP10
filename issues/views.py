@@ -113,3 +113,32 @@ class IssueViewSet(viewsets.ViewSet):
 
         deleted_issue.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class IssuesModelsViewSet(viewsets.ModelViewSet):
+    serializer_class = IssueSerializer
+
+    def get_queryset(self):
+        return Issue.objects.filter(project=self.kwargs["projects_pk"])
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ["update", "destroy"]:
+            permission_classes = [IsAuthenticated, IsAuthor]
+        else:
+            permission_classes = [IsAuthenticated, IsProjectContributorOrAuthor]
+
+        return [permission() for permission in permission_classes]
+
+    def list(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs["projects_pk"])
+        self.check_object_permissions(request, project)
+        return super().list(request, args, kwargs)
+
+    def create(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs["projects_pk"])
+        self.check_object_permissions(request, project)
+
+        return super().create(request, args, kwargs)

@@ -20,6 +20,7 @@ class IsProjectContributorOrAuthor(permissions.BasePermission):
     message = "You must be the project author or contributor."
 
     def has_object_permission(self, request, view, obj):
+
         if Contributor.objects.filter(project=obj, user=request.user):
             return True
         else:
@@ -165,3 +166,25 @@ class CommentsModelsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Comment.objects.filter(issue=self.kwargs["issues_pk"])
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+
+        if self.action in ["update", "destroy"]:
+            permission_classes = [IsAuthenticated, IsAuthor]
+        else:
+            permission_classes = [IsAuthenticated, IsProjectContributorOrAuthor]
+
+        return [permission() for permission in permission_classes]
+
+    def list(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs["projects_pk"])
+        self.check_object_permissions(request, project)
+        return super().list(request, args, kwargs)
+
+    def create(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs["projects_pk"])
+        self.check_object_permissions(request, project)
+        return super().create(request, args, kwargs)
