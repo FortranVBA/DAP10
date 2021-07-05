@@ -33,6 +33,13 @@ class IsAuthor(permissions.BasePermission):
             return False
 
 
+class NotAllowed(permissions.BasePermission):
+    message = "This operation is not allowed."
+
+    def has_permission(self, request, view):
+        return False
+
+
 class ProjectViewSet(viewsets.ViewSet):
     def get_permissions(self):
         """
@@ -40,10 +47,12 @@ class ProjectViewSet(viewsets.ViewSet):
         """
         if self.action == "retrieve":
             permission_classes = [IsAuthenticated, IsContributorOrAuthor]
-        elif self.action in ["update", "destroy"]:
+        elif self.action in ["update", "retrieve"]:
             permission_classes = [IsAuthenticated, IsAuthor]
-        else:
+        elif self.action in ["list", "create", "destroy"]:
             permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [NotAllowed]
 
         return [permission() for permission in permission_classes]
 
@@ -129,10 +138,12 @@ class ProjectModelsViewSet(viewsets.ModelViewSet):
         """
         if self.action == "retrieve":
             permission_classes = [IsAuthenticated, IsContributorOrAuthor]
-        elif self.action in ["update", "destroy"]:
+        elif self.action in ["update", "retrieve"]:
             permission_classes = [IsAuthenticated, IsAuthor]
-        else:
+        elif self.action in ["list", "create", "destroy"]:
             permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [NotAllowed]
 
         return [permission() for permission in permission_classes]
 

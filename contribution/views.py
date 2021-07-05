@@ -40,6 +40,13 @@ class IsAuthor(permissions.BasePermission):
         return not obj.permission == "author"
 
 
+class NotAllowed(permissions.BasePermission):
+    message = "This operation is not allowed."
+
+    def has_permission(self, request, view):
+        return False
+
+
 class ContributionViewSet(viewsets.ViewSet):
     def get_permissions(self):
         """
@@ -47,8 +54,10 @@ class ContributionViewSet(viewsets.ViewSet):
         """
         if self.action == "destroy":
             permission_classes = [IsAuthenticated, IsAuthor]
-        else:
+        if self.action in ["list", "create"]:
             permission_classes = [IsAuthenticated, IsContributorOrAuthor]
+        else:
+            permission_classes = [NotAllowed]
 
         return [permission() for permission in permission_classes]
 
@@ -125,8 +134,10 @@ class ContributionModelsViewSet(viewsets.ModelViewSet):
         """
         if self.action == "destroy":
             permission_classes = [IsAuthenticated, IsAuthor]
-        else:
+        if self.action in ["list", "create"]:
             permission_classes = [IsAuthenticated, IsContributorOrAuthor]
+        else:
+            permission_classes = [NotAllowed]
 
         return [permission() for permission in permission_classes]
 

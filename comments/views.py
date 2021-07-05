@@ -34,6 +34,13 @@ class IsAuthor(permissions.BasePermission):
         return obj.author_user == request.user
 
 
+class NotAllowed(permissions.BasePermission):
+    message = "This operation is not allowed."
+
+    def has_permission(self, request, view):
+        return False
+
+
 class CommentsViewSet(viewsets.ViewSet):
     def get_permissions(self):
         """
@@ -41,8 +48,10 @@ class CommentsViewSet(viewsets.ViewSet):
         """
         if self.action in ["update", "destroy"]:
             permission_classes = [IsAuthenticated, IsAuthor]
-        else:
+        if self.action in ["create", "list", "retrieve"]:
             permission_classes = [IsAuthenticated, IsProjectContributorOrAuthor]
+        else:
+            permission_classes = [NotAllowed]
 
         return [permission() for permission in permission_classes]
 
@@ -171,11 +180,12 @@ class CommentsModelsViewSet(viewsets.ModelViewSet):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-
         if self.action in ["update", "destroy"]:
             permission_classes = [IsAuthenticated, IsAuthor]
-        else:
+        if self.action in ["create", "list", "retrieve"]:
             permission_classes = [IsAuthenticated, IsProjectContributorOrAuthor]
+        else:
+            permission_classes = [NotAllowed]
 
         return [permission() for permission in permission_classes]
 

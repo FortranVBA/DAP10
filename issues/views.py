@@ -28,6 +28,13 @@ class IsAuthor(permissions.BasePermission):
         return obj.author_user == request.user
 
 
+class NotAllowed(permissions.BasePermission):
+    message = "This operation is not allowed."
+
+    def has_permission(self, request, view):
+        return False
+
+
 class IssueViewSet(viewsets.ViewSet):
     def get_permissions(self):
         """
@@ -35,8 +42,10 @@ class IssueViewSet(viewsets.ViewSet):
         """
         if self.action in ["update", "destroy"]:
             permission_classes = [IsAuthenticated, IsAuthor]
-        else:
+        elif self.action in ["list", "create"]:
             permission_classes = [IsAuthenticated, IsProjectContributorOrAuthor]
+        else:
+            permission_classes = [NotAllowed]
 
         return [permission() for permission in permission_classes]
 
@@ -127,8 +136,10 @@ class IssuesModelsViewSet(viewsets.ModelViewSet):
         """
         if self.action in ["update", "destroy"]:
             permission_classes = [IsAuthenticated, IsAuthor]
-        else:
+        elif self.action in ["list", "create"]:
             permission_classes = [IsAuthenticated, IsProjectContributorOrAuthor]
+        else:
+            permission_classes = [NotAllowed]
 
         return [permission() for permission in permission_classes]
 
