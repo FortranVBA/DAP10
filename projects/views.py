@@ -138,9 +138,9 @@ class ProjectModelsViewSet(viewsets.ModelViewSet):
         """
         if self.action == "retrieve":
             permission_classes = [IsAuthenticated, IsContributorOrAuthor]
-        elif self.action in ["update", "retrieve"]:
+        elif self.action in ["update", "destroy"]:
             permission_classes = [IsAuthenticated, IsAuthor]
-        elif self.action in ["list", "create", "destroy"]:
+        elif self.action in ["list", "create", "retrieve"]:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [NotAllowed]

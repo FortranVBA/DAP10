@@ -134,7 +134,7 @@ class ContributionModelsViewSet(viewsets.ModelViewSet):
         """
         if self.action == "destroy":
             permission_classes = [IsAuthenticated, IsAuthor]
-        if self.action in ["list", "create"]:
+        elif self.action in ["list", "create"]:
             permission_classes = [IsAuthenticated, IsContributorOrAuthor]
         else:
             permission_classes = [NotAllowed]

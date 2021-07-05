@@ -28,7 +28,7 @@ class IsProjectContributorOrAuthor(permissions.BasePermission):
 
 
 class IsAuthor(permissions.BasePermission):
-    message = "You must be the issue author."
+    message = "You must be the comment author."
 
     def has_object_permission(self, request, view, obj):
         return obj.author_user == request.user
@@ -182,8 +182,10 @@ class CommentsModelsViewSet(viewsets.ModelViewSet):
         """
         if self.action in ["update", "destroy"]:
             permission_classes = [IsAuthenticated, IsAuthor]
-        if self.action in ["create", "list", "retrieve"]:
+        elif self.action in ["create", "list"]:
             permission_classes = [IsAuthenticated, IsProjectContributorOrAuthor]
+        elif self.action in ["retrieve"]:
+            permission_classes = [IsAuthenticated]
         else:
             permission_classes = [NotAllowed]
 
@@ -198,3 +200,15 @@ class CommentsModelsViewSet(viewsets.ModelViewSet):
         project = Project.objects.get(id=kwargs["projects_pk"])
         self.check_object_permissions(request, project)
         return super().create(request, args, kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        project = Project.objects.get(id=kwargs["projects_pk"])
+
+        permission_project = IsProjectContributorOrAuthor()
+
+        if permission_project.has_object_permission(request, self, project):
+            return super().retrieve(request, args, kwargs)
+
+        return Response(
+            {"Detail": permission_project.message}, status=status.HTTP_400_BAD_REQUEST
+        )
