@@ -247,9 +247,27 @@
 				},
 				{
 					"name": "project details",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "aze",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "a1z2e3r4",
+									"type": "text"
+								}
+							]
+						},
 						"url": {
 							"raw": "http://127.0.0.1:8000/projects/{{project_id}}/",
 							"protocol": "http",
