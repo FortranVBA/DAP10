@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "38f41a9e-5444-4f5f-8f76-2ef436eb81fb",
 		"name": "Main collection",
-		"description": "# Soft Desk API\n\n## Overview\n\nSoft Desk API is a back-end application to be executed locally in the context of OpenClassroom educational project. \nIt allow registered users to report and follow project related issues.\nRegistered users can create projects, add project contributors, create project issues and create issue comments.\nThis application has been developed with the Django rest framework, using SQlite database.\n\n## Local server installation and usage\n\nPlease refer to the application README.md for application installation and usage.\n\n## Error codes\n\n**404**: One of the id request (stored in variables `project_id`, `user_id`, `issue_id` or `comment_id`) refer to a non existant object.",
+		"description": "# Soft Desk API\n\n## Overview\n\nSoft Desk API is a back-end application to be executed locally in the context of OpenClassroom educational project. \nIt allow registered users to report and follow project related issues.\nRegistered users can create projects, add project contributors, create project issues and create issue comments.\nThis application has been developed with the Django rest framework, using SQlite database.\n\n## Local server installation and usage\n\nPlease refer to the application README.md for application installation and usage.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
