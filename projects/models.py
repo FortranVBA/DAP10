@@ -7,6 +7,7 @@ from django.db import models
 
 class Project(models.Model):
     """Project model."""
+
     TYPE_CHOICES = [
         ("back-end", "back-end"),
         ("front-end", "front-end"),
@@ -20,4 +21,4 @@ class Project(models.Model):
         max_length=128,
         choices=TYPE_CHOICES,
         default="back-end",
-        )
+    )

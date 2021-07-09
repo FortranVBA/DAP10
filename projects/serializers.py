@@ -2,7 +2,6 @@
 
 from .models import Project
 from rest_framework import serializers
-from contribution.models import Contributor
 
 # Create your models here.
 
