@@ -67,7 +67,7 @@ The main collection contains all allowed endpoints :
 | Delete comment | DELETE | /projects/{id}/issues/{id}/comments/{id} |
 | Get comment with its id | GET | /projects/{id}/issues/{id}/comments/{id} |
 
-Please refer to the postman collection documentation for all endpoint description and expected parameters.
+Please refer to the postman collection documentation (available at https://documenter.getpostman.com/view/9694290/Tzm6mba6) for all endpoint description and expected parameters.
 
 ## Admin panel
 
